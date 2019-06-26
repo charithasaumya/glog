@@ -168,6 +168,8 @@ _START_GOOGLE_NAMESPACE_
 
 namespace glog_internal_namespace_ {
 
+void (*g_buffer_full_callback)() = NULL;
+
 const char* ProgramInvocationShortName() {
   if (g_program_invocation_short_name != NULL) {
     return g_program_invocation_short_name;
@@ -342,7 +344,7 @@ void SetCrashReason(const CrashReason* r) {
                             r);
 }
 
-void InitGoogleLoggingUtilities(const char* argv0) {
+void InitGoogleLoggingUtilities(const char* argv0, void (*callback)()) {
   CHECK(!IsGoogleLoggingInitialized())
       << "You called InitGoogleLogging() twice!";
   const char* slash = strrchr(argv0, '/');
@@ -351,6 +353,7 @@ void InitGoogleLoggingUtilities(const char* argv0) {
 #endif
   g_program_invocation_short_name = slash ? slash + 1 : argv0;
   g_main_thread_id = pthread_self();
+  g_buffer_full_callback = callback;
 
 #ifdef HAVE_STACKTRACE
   InstallFailureFunction(&DumpStackTraceAndExit);

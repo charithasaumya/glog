@@ -1563,6 +1563,8 @@ void LogMessage::SaveOrSendToLog() EXCLUSIVE_LOCKS_REQUIRED(log_mutex) {
     // Omit prefix of message and trailing newline when recording in outvec_.
     const char *start = data_->message_text_ + data_->num_prefix_chars_;
     int len = data_->num_chars_to_log_ - data_->num_prefix_chars_ - 1;
+    // allways call the callback before inserting to the vector
+    (*g_buffer_full_callback)();
     data_->outvec_->push_back(string(start, len));
   } else {
     SendToLog();
@@ -1574,9 +1576,9 @@ void LogMessage::WriteToStringAndLog() EXCLUSIVE_LOCKS_REQUIRED(log_mutex) {
     RAW_DCHECK(data_->num_chars_to_log_ > 0 &&
                data_->message_text_[data_->num_chars_to_log_-1] == '\n', "");
     // Omit prefix of message and trailing newline when writing to message_.
-    const char *start = data_->message_text_ + data_->num_prefix_chars_;
-    int len = data_->num_chars_to_log_ - data_->num_prefix_chars_ - 1;
-    data_->message_->assign(start, len);
+    const char *start = data_->message_text_;
+    int len = data_->num_chars_to_log_;
+    data_->message_->append(start, len);
   }
   SendToLog();
 }
@@ -2163,8 +2165,8 @@ void MakeCheckOpValueString(std::ostream* os, const unsigned char& v) {
   }
 }
 
-void InitGoogleLogging(const char* argv0) {
-  glog_internal_namespace_::InitGoogleLoggingUtilities(argv0);
+void InitGoogleLogging(const char* argv0, void (*callback)()) {
+  glog_internal_namespace_::InitGoogleLoggingUtilities(argv0, callback);
 }
 
 void ShutdownGoogleLogging() {

@@ -159,6 +159,8 @@ namespace glog_internal_namespace_ {
 # define ATTRIBUTE_NOINLINE
 #endif
 
+extern void (*g_buffer_full_callback)();
+
 const char* ProgramInvocationShortName();
 
 bool IsGoogleLoggingInitialized();
@@ -228,7 +230,7 @@ struct CrashReason {
 
 void SetCrashReason(const CrashReason* r);
 
-void InitGoogleLoggingUtilities(const char* argv0);
+void InitGoogleLoggingUtilities(const char* argv0, void (*callback)());
 void ShutdownGoogleLoggingUtilities();
 
 }  // namespace glog_internal_namespace_
